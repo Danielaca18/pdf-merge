@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'file_tile.dart';
 import 'bottom_bar.dart';
-import '../platform/platform_widgets.dart';
+import 'file_list/file_list.dart';
+import 'title_bar.dart';
 
 class PDFMergeHomePage extends StatefulWidget {
   const PDFMergeHomePage({
@@ -22,53 +24,74 @@ class PDFMergeHomePage extends StatefulWidget {
 }
 
 class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
-  List<String> _pdfFiles = [];
-  Set<String> _selectedPaths = {};
+  final List<String> _pdfFiles = [];
+  final Set<String> _selectedPaths = {};
+  bool _isPickingFiles = false;
 
   void _pickFiles() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ["pdf"],
-      allowMultiple: true,
-    );
+    if (_isPickingFiles) return;
 
-    if (result != null) {
-      setState(() {
-        _pdfFiles.addAll(
-          result.paths.whereType<String>().where(
-            (element) => !_pdfFiles.contains(element),
-          ),
-        );
-      });
+    _isPickingFiles = true;
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ["pdf"],
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        setState(() {
+          _pdfFiles.addAll(
+            result.paths.whereType<String>().where(
+              (element) => !_pdfFiles.contains(element),
+            ),
+          );
+        });
+      }
+    } finally {
+      _isPickingFiles = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return WindowBorder(
-      color: Theme.of(context).colorScheme.primary,
+      color: colorScheme.primary,
       width: 1,
       child: Column(
         children: [
-          WindowTitleBarBox(
-            child: Row(
-              children: [
-                Expanded(child: MoveWindow(child: _buildAppBar())),
-                WindowButtons(),
-              ],
-            ),
+          TitleBar(
+            isDark: widget.isDark,
+            onToggleTheme: widget.onToggleTheme,
+            onPickFiles: _pickFiles,
           ),
           Expanded(
             child: Scaffold(
-              body: ReorderableListView.builder(
-                itemCount: _pdfFiles.length,
+              appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(40),
+                child: AppBar(
+                  backgroundColor: colorScheme.surface,
+                  actions: [
+                    IconButton(
+                      icon: Icon(
+                        widget.isDark
+                            ? Icons.dark_mode_outlined
+                            : Icons.light_mode_outlined,
+                      ),
+                      onPressed: () => widget.onToggleTheme(!widget.isDark),
+                    ),
+                  ],
+                ),
+              ),
+              body: FileList(
+                files: _pdfFiles,
+                selected: _selectedPaths,
+                onDelete: _removeFile,
+                onTap: _onSelect,
                 onReorder: _onReorder,
-                itemBuilder: _buildFileTile,
               ),
-              bottomNavigationBar: BottomBar(
-                onMergeAll: _mergeAll,
-                onMergeSelected: _mergeSelected,
-              ),
+              bottomNavigationBar: BottomBar(onMerge: _merge),
             ),
           ),
         ],
@@ -76,23 +99,8 @@ class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
     );
   }
 
-  void _mergeSelected() {
+  void _merge() {
     // TODO: Merge file subset
-  }
-
-  void _mergeAll() {
-    // TODO: Marge all selection
-  }
-
-  Widget _buildFileTile(context, index) {
-    final path = _pdfFiles[index];
-    return FileTile(
-      key: ValueKey("${_pdfFiles[index]}_${_selectedPaths.contains(path)}"),
-      filePath: _pdfFiles[index],
-      isSelected: _selectedPaths.contains(path),
-      onTap: () => _toggleSelect(index),
-      onDelete: () => _removeFile(index),
-    );
   }
 
   void _removeFile(int index) {
@@ -101,7 +109,7 @@ class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
     });
   }
 
-  void _toggleSelect(int index) {
+  void _onSelect(int index) {
     final path = _pdfFiles[index];
     setState(() {
       if (_selectedPaths.contains(path)) {
@@ -118,43 +126,5 @@ class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
       final element = _pdfFiles.removeAt(oldIndex);
       _pdfFiles.insert(newIndex, element);
     });
-  }
-
-  AppBar _buildAppBar() => AppBar(
-    title: Text(widget.title),
-    actions: [
-      IconButton(onPressed: _pickFiles, icon: Icon(Icons.upload_file)),
-      PlatformSwitch(value: widget.isDark, onChanged: widget.onToggleTheme),
-    ],
-  );
-}
-
-final buttonColors = WindowButtonColors(
-  iconNormal: const Color(0xFF805306),
-  mouseOver: const Color(0xFFF6A00C),
-  mouseDown: const Color(0xFF805306),
-  iconMouseOver: const Color(0xFF805306),
-  iconMouseDown: const Color(0xFFFFD500),
-);
-
-final closeButtonColors = WindowButtonColors(
-  mouseOver: const Color(0xFFD32F2F),
-  mouseDown: const Color(0xFFB71C1C),
-  iconNormal: const Color(0xFF805306),
-  iconMouseOver: Colors.white,
-);
-
-class WindowButtons extends StatelessWidget {
-  const WindowButtons({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        MinimizeWindowButton(colors: buttonColors),
-        MaximizeWindowButton(colors: buttonColors),
-        CloseWindowButton(colors: closeButtonColors),
-      ],
-    );
   }
 }
