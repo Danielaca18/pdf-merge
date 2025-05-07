@@ -56,3 +56,75 @@ class PlatformSwitch extends StatelessWidget {
     }
   }
 }
+
+class PlatformListTile extends StatelessWidget {
+  final Widget title;
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  const PlatformListTile({
+    super.key,
+    required this.title,
+    required this.selected,
+    required this.onTap,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (Platform.isWindows) {
+      return fluent.ListTile(
+        title: title,
+        onPressed: onTap,
+        trailing: trailing,
+      );
+    } else {
+      return ListTile(
+        title: title,
+        selected: selected,
+        onTap: onTap,
+        trailing: trailing,
+      );
+    }
+  }
+}
+
+class PlatformIconButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final Widget icon;
+  final String? tooltip;
+
+  const PlatformIconButton({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (Platform.isWindows) {
+      return fluent.Tooltip(
+        message: tooltip ?? '',
+        child: fluent.IconButton(icon: icon, onPressed: onPressed),
+      );
+    } else if (Platform.isMacOS) {
+      return macos.MacosTooltip(
+        message: tooltip ?? '',
+        child: macos.MacosIconButton(onPressed: onPressed, icon: icon),
+      );
+    } else if (Platform.isIOS) {
+      return CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+        child: icon,
+      );
+    } else {
+      return Tooltip(
+        message: tooltip ?? '',
+        child: IconButton(onPressed: onPressed, icon: icon, tooltip: tooltip),
+      );
+    }
+  }
+}
