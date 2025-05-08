@@ -26,22 +26,57 @@ class TitleBar extends StatelessWidget {
     ],
   );
 
+  Widget _buildMenuBar(BuildContext context, Color bgColor) {
+    return Material(
+      color: bgColor,
+      child: Row(
+        children: [
+          _menu("File", []),
+          _menu("Edit", []),
+          _menu("View", []),
+          _menu("Help", []),
+        ],
+      ),
+    );
+  }
+
+  Widget _menu(String label, List<PopupMenuEntry> items) {
+    return Material(
+      type: MaterialType.transparency,
+      child: PopupMenuButton(
+        itemBuilder: (_) => items,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(label, style: const TextStyle(fontSize: 14)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final background = Theme.of(context).colorScheme.surface;
+    final ColorScheme colorScheme =
+        PlatformTheme(context: context).theme.colorScheme;
 
     return WindowTitleBarBox(
       child: Container(
-        color: background,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: colorScheme.surfaceBright.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+        ),
         child: Row(
           children: [
             Expanded(
-              child: Container(
-                color: background,
-                child: MoveWindow(child: _buildAppBar()),
+              child: MoveWindow(
+                child: _buildMenuBar(context, colorScheme.surface),
               ),
             ),
-            WindowButtons(),
+            WindowButtons(isDark: isDark),
           ],
         ),
       ),
@@ -50,19 +85,20 @@ class TitleBar extends StatelessWidget {
 }
 
 class WindowButtons extends StatelessWidget {
-  const WindowButtons({super.key});
+  final bool isDark;
+
+  const WindowButtons({super.key, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = PlatformTheme(context: context).theme.colorScheme;
     final background = colorScheme.surface;
 
-    return Container(
-      color: background,
+    return Material(
       child: Row(
         children: [
-          MinimizeWindowButton(colors: getButtonColors(colorScheme)),
-          MaximizeWindowButton(colors: getButtonColors(colorScheme)),
+          MinimizeWindowButton(colors: getButtonColors(colorScheme, isDark)),
+          MaximizeWindowButton(colors: getButtonColors(colorScheme, isDark)),
           CloseWindowButton(colors: getCloseButtonColors(colorScheme)),
         ],
       ),
@@ -70,20 +106,21 @@ class WindowButtons extends StatelessWidget {
   }
 }
 
-WindowButtonColors getButtonColors(ColorScheme colorScheme) {
+WindowButtonColors getButtonColors(ColorScheme colorScheme, bool isDark) {
   return WindowButtonColors(
-    normal: colorScheme.surface,
     iconNormal: colorScheme.primary,
-    iconMouseOver: colorScheme.secondary,
+    iconMouseOver: colorScheme.primary,
     iconMouseDown: colorScheme.primary.withValues(alpha: 0.8),
-    mouseOver: colorScheme.secondary.withValues(alpha: 0.1),
-    mouseDown: colorScheme.primary.withValues(alpha: 0.2),
+    mouseOver:
+        isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.1),
+    mouseDown: colorScheme.surface.withValues(alpha: 0.2),
   );
 }
 
 WindowButtonColors getCloseButtonColors(ColorScheme colorScheme) {
   return WindowButtonColors(
-    normal: colorScheme.surface,
     iconNormal: colorScheme.primary,
     iconMouseOver: colorScheme.secondary,
     mouseOver: Colors.red.shade700,
