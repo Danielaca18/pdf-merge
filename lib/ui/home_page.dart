@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'bottom_bar.dart';
 import 'file_list/file_list.dart';
 import 'title_bar.dart';
+import '../platform/platform_widgets.dart';
 
 class PDFMergeHomePage extends StatefulWidget {
   const PDFMergeHomePage({
@@ -55,7 +56,7 @@ class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = PlatformTheme(context: context).theme.colorScheme;
     return WindowBorder(
       color: colorScheme.primary,
       width: 1,
@@ -71,15 +72,21 @@ class _PDFMergeHomePageState extends State<PDFMergeHomePage> {
               appBar: PreferredSize(
                 preferredSize: const Size.fromHeight(40),
                 child: AppBar(
+                  title: Text("PDF Merge"),
+                  centerTitle: true,
+                  leading: IconButton(
+                    icon: Icon(
+                      widget.isDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                    ),
+                    onPressed: () => widget.onToggleTheme(!widget.isDark),
+                  ),
                   backgroundColor: colorScheme.surface,
                   actions: [
                     IconButton(
-                      icon: Icon(
-                        widget.isDark
-                            ? Icons.dark_mode_outlined
-                            : Icons.light_mode_outlined,
-                      ),
-                      onPressed: () => widget.onToggleTheme(!widget.isDark),
+                      icon: Icon(Icons.add),
+                      onPressed: () => _pickFiles(),
                     ),
                   ],
                 ),
