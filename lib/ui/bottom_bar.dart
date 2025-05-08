@@ -9,7 +9,7 @@ class BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: PlatformTheme(context: context).theme.colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
