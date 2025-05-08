@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:pdf_merge/platform/platform_widgets.dart';
 
 class FileTile extends StatelessWidget {
   final String filePath;
@@ -19,13 +20,11 @@ class FileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tile = ListTile(
+    final tile = PlatformListTile(
       key: ValueKey("$filePath $isSelected"),
+      selected: isSelected,
       title: Text(filePath.split(Platform.pathSeparator).last),
-      tileColor:
-          isSelected
-              ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3)
-              : null,
+      tileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
       trailing: IconButton(icon: Icon(Icons.delete), onPressed: onDelete),
       onTap: onTap,
     );

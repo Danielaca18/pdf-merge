@@ -31,11 +31,13 @@ class FileList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableListView.builder(
-      buildDefaultDragHandles: false,
-      itemCount: files.length,
-      onReorder: onReorder,
-      itemBuilder: _buildFileTile,
+    return ClipRect(
+      child: ReorderableListView.builder(
+        buildDefaultDragHandles: false,
+        itemCount: files.length,
+        onReorder: onReorder,
+        itemBuilder: _buildFileTile,
+      ),
     );
   }
 }
