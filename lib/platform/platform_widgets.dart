@@ -61,6 +61,7 @@ class PlatformListTile extends StatelessWidget {
   final Widget title;
   final bool selected;
   final VoidCallback onTap;
+  final Color tileColor;
   final Widget? trailing;
 
   const PlatformListTile({
@@ -68,16 +69,41 @@ class PlatformListTile extends StatelessWidget {
     required this.title,
     required this.selected,
     required this.onTap,
+    required this.tileColor,
     this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     if (Platform.isWindows) {
       return fluent.ListTile(
+        key: key,
         title: title,
+        tileColor: WidgetStatePropertyAll(
+          selected ? tileColor : Colors.transparent,
+        ),
         onPressed: onTap,
         trailing: trailing,
+      );
+    }
+    if (Platform.isMacOS) {
+      return Container(
+        color: selected ? tileColor : Colors.transparent,
+        child: macos.MacosListTile(
+          leading: trailing,
+          title: title,
+          onClick: onTap,
+        ),
+      );
+    }
+    if (Platform.isIOS) {
+      return CupertinoListTile(
+        title: title,
+        onTap: onTap,
+        trailing: trailing,
+        backgroundColor: selected ? tileColor : Colors.transparent,
       );
     } else {
       return ListTile(
@@ -125,6 +151,31 @@ class PlatformIconButton extends StatelessWidget {
         message: tooltip ?? '',
         child: IconButton(onPressed: onPressed, icon: icon, tooltip: tooltip),
       );
+    }
+  }
+}
+
+class PlatformTheme {
+  final BuildContext context;
+
+  const PlatformTheme({required this.context});
+
+  /// Returns the appropriate platform theme object
+  dynamic get theme {
+    if (Platform.isIOS) {
+      return CupertinoTheme.of(context);
+    } else if (Platform.isAndroid) {
+      return Theme.of(context);
+    } else if (Platform.isWindows) {
+      // return fluent_ui.FluentTheme.of(context);
+      return Theme.of(context); // fallback
+    } else if (Platform.isMacOS) {
+      // return MacosTheme.of(context);
+      return Theme.of(context); // fallback
+    } else if (Platform.isLinux) {
+      return Theme.of(context);
+    } else {
+      return Theme.of(context); // default fallback
     }
   }
 }
